@@ -42,11 +42,11 @@ if(!isset($config['database']['type']))
 {
 	if($config['dbtype'])
 	{
-		die('MyBB needs to be upgraded before you can convert.');
+		die($lang->indexpage_errorupgrade);
 	}
 	else
 	{
-		die('MyBB needs to be installed before you can convert.');
+		die($lang->indexpage_errorinstall);
 	}
 }
 
@@ -80,6 +80,14 @@ require_once MYBB_ROOT."inc/functions_rebuild.php";
 require_once MYBB_ROOT."inc/functions.php";
 require_once MYBB_ROOT."inc/settings.php";
 $mybb->settings = $settings;
+
+// Language
+
+require_once MYBB_ROOT."inc/class_language.php";
+require_once MERGE_ROOT."resources/class_language.php";
+$lang = new debugMyLanguage();
+$lang->set_path(MERGE_ROOT."language");
+$lang->load("global");
 
 if(substr($mybb->settings['uploadspath'], 0, 2) == "./" || substr($mybb->settings['uploadspath'], 0, 3) == "../")
 {
@@ -159,7 +167,7 @@ if(!$import_session['resume_module'])
 
 if($mybb->version_code < 1700 || $mybb->version_code >= 2000)
 {
-	$output->print_error("The MyBB Merge System requires MyBB 1.8 to run.");
+	$output->print_error("$lang->indexpage_require");
 }
 
 // Are we done? Generate the report!
@@ -642,23 +650,23 @@ if(!$import_session['first_page'] && !$mybb->input['first_page'])
 
 	define("BACK_BUTTON", false);
 
-	$output->print_header("Welcome");
+	$output->print_header("$lang->welcomepage_welcome");
 
 	echo "<script type=\"text/javascript\">function button_undisable() { document.getElementById('main_submit_button').disabled = false; document.getElementById('main_submit_button').className = 'submit_button'; } window.onload = button_undisable; </script>";
 
-	echo "<p>Welcome to the MyBB Merge System. The MyBB Merge system has been designed to allow you to convert a supported forum software to MyBB 1.8. In addition, you may also <i>merge</i> multiple forums into one MyBB Forum.<br /><br /> You can find a detailed guide to the MyBB Merge System on our docs site: <a href=\"http://docs.mybb.com/1.8/merge/\" target=\"_blank\">Merge System</a></p>
+	echo "<p>$lang->welcomepage_description $lang->welcomepage_guide<a href=\"http://docs.mybb.com/1.8/merge/\" target=\"_blank\">$lang->welcomepage_mergesystem</a></p>
 		<input type=\"hidden\" name=\"first_page\" value=\"1\" />";
 
-	echo '<input type="checkbox" name="allow_anonymous_info" value="1" id="allow_anonymous" checked="checked" /> <label for="allow_anonymous"> Send anonymous statistics about my merge to the MyBB Group</label> (<a href="http://docs.mybb.com/1.8/merge/running#anonymous-statistics" style="color: #555;" target="_blank"><small>What information is sent?</small></a>)<br />';
-	echo '<input type="checkbox" name="close_board" value="1" id="close_board" checked="checked" /> <label for="close_board"> Close the board during the merge</label>';
+	echo '<input type="checkbox" name="allow_anonymous_info" value="1" id="allow_anonymous" checked="checked" /> <label for="allow_anonymous"> '.$lang->welcomepage_anonymousstat.'</label> (<a href="http://docs.mybb.com/1.8/merge/running#anonymous-statistics" style="color: #555;" target="_blank"><small>'.$lang->welcomepage_informations.'</small></a>)<br />';
+	echo '<input type="checkbox" name="close_board" value="1" id="close_board" checked="checked" /> <label for="close_board"> '.$lang->welcomepage_closeboard.'</label>';
 
-	$output->print_warning("The MyBB Merge system is <u><strong>not</strong></u> used for upgrading or linking MyBB forums. In addition, please make sure all modifications or plugins that may interefere with the conversion process are <strong>deactivated</strong> on both forums (your old forum and your new forum), before you run the MyBB Merge System. It is also <strong>strongly</strong> recommended to make a backup of both forums before you continue.", "Please Note");
+	$output->print_warning("$lang->welcomepage_note", "$lang->welcomepage_pleasenote");
 
 	echo '<noscript>';
 	$output->print_warning('It appears that you have javascript turned off. The MyBB Merge System requires that javascript be turned on in order to operate properly. Once you have turned javascript on, please refresh this page.');
 	echo '</noscript>';
 
-	$output->print_footer("", "", 1, false, "Next", "id=\"main_submit_button\" disabled=\"disabled\"", "submit_button_disabled");
+	$output->print_footer("", "", 1, false, "$lang->welcomepage_next", "id=\"main_submit_button\" disabled=\"disabled\"", "submit_button_disabled");
 }
 
 
@@ -692,9 +700,9 @@ else if(!$import_session['requirements_check'] || ($mybb->input['first_page'] ==
 	$errors = array();
 	$checks = array();
 
-	$output->print_header("Requirements Check");
+	$output->print_header("$lang->requirementspage_check");
 
-	$checks['version_check_status'] = '<span class="pass">Up to Date</span>';
+	$checks['version_check_status'] = '<span class="pass">'.$lang->requirementspage_uptodate.'</span>';
 
 	// Check for a new version of the Merge System!
 	require_once MYBB_ROOT."inc/class_xml.php";
@@ -708,58 +716,58 @@ else if(!$import_session['requirements_check'] || ($mybb->input['first_page'] ==
 		$latest_version = "<strong>".$tree['mybb_merge']['latest_version']['value']."</strong> (".$latest_code.")";
 		if($latest_code > $version_code)
 		{
-			$errors['version_check'] = "Your MyBB Merge System is out of date! Your MyBB Merge System may not work properly until you update. Latest version: <span style=\"color: #C00;\">".$latest_version."</span> (<a href=\"http://www.mybb.com/downloads/merge-system\" target=\"_blank\">Download</a>)";
-			$checks['version_check_status'] = '<span class="fail">Out of Date</span>';
-			$debug->log->warning("This version of the merge system is out-of-date");
+			$errors['version_check'] = "$lang->requirementspage_outofdatedesc <span style=\"color: #C00;\">".$latest_version."</span> (<a href=\"http://www.mybb.com/downloads/merge-system\" target=\"_blank\">$lang->requirementspage_download</a>)";
+			$checks['version_check_status'] = '<span class="fail">'.$lang->requirementspage_outofdate.'</span>';
+			$debug->log->warning("$lang->requirementspage_mergeoutofdate");
 		}
 	}
 
 	// Uh oh, problemos mi amigo?
 	if(!$contents || !$latest_code)
 	{
-		$checks['version_check_status'] = '<span class="pass"><i>Unable to Check</i></span>';
-		$debug->log->warning("Unable to check version status against mybb.com version server");
+		$checks['version_check_status'] = '<span class="pass"><i>'.$lang->requirementspage_unabletocheck.'</i></span>';
+		$debug->log->warning("$lang->requirementspage_unabletocheckdesc");
 	}
 
 	// Check upload directory is writable
 	$attachmentswritable = @fopen(MYBB_ROOT.'uploads/test.write', 'w');
 	if(!$attachmentswritable)
 	{
-		$errors['attachments_check'] = 'The attachments directory (/uploads/) is not writable. Please adjust the <a href="http://docs.mybb.com/1.8/install/#file-permissions" target="_blank">chmod</a> permissions to allow it to be written to.';
+		$errors['attachments_check'] = ''.$lang->requirementspage_chmoduploads.' <a href="http://docs.mybb.com/1.8/install/#file-permissions" target="_blank">'.$lang->requirementspage_chmod.'</a>'.$lang->requirementspage_chmoduploads.'';
 		$checks['attachments_check_status'] = '<span class="fail"><strong>Not Writable</strong></span>';
 		@fclose($attachmentswritable);
-		$debug->log->trace0("Attachments directory not writable");
+		$debug->log->trace0("$lang->requirementspage_attnotwritable");
 	}
 	else
 	{
-		$checks['attachments_check_status'] = '<span class="pass">Writable</span>';
+		$checks['attachments_check_status'] = '<span class="pass">'.$lang->requirementspage_attwritable.'</span>';
 		@fclose($attachmentswritable);
 		@my_chmod(MYBB_ROOT.'uploads', '0777');
 		@my_chmod(MYBB_ROOT.'uploads/test.write', '0777');
 		@unlink(MYBB_ROOT.'uploads/test.write');
-		$debug->log->trace0("Attachments directory writable");
+		$debug->log->trace0("$lang->requirementspage_attwritabledesc");
 	}
 
 	if(!empty($errors))
 	{
-		$output->print_warning(error_list($errors), "The MyBB Merge System Requirements check failed:");
+		$output->print_warning(error_list($errors), "$lang->requirementspage_reqfailed");
 	}
 
 	echo '<p><div class="border_wrapper">
-			<div class="title">Requirements Check</div>
+			<div class="title">'.$lang->requirementspage_check.'</div>
 		<table class="general" cellspacing="0">
 		<thead>
 			<tr>
-				<th colspan="2" class="first last">Requirements</th>
+				<th colspan="2" class="first last">'.$lang->requirementspage_req.'</th>
 			</tr>
 		</thead>
 		<tbody>
 		<tr class="first">
-			<td class="first">Merge System Version:</td>
+			<td class="first">'.$lang->requirementspage_mergeversion.'</td>
 			<td class="last alt_col">'.$checks['version_check_status'].'</td>
 		</tr>
 		<tr class="alt_row">
-			<td class="first">Attachments Directory Writable:</td>
+			<td class="first">'.$lang->requirementspage_attwritabledesc2.'</td>
 			<td class="last alt_col">'.$checks['attachments_check_status'].'</td>
 		</tr>
 		</tbody>
@@ -771,13 +779,13 @@ else if(!$import_session['requirements_check'] || ($mybb->input['first_page'] ==
 	if(!empty($errors))
 	{
 		$import_session['requirements_pass'] = 0;
-		echo '<p><strong>When you are ready, click "Check Again" to check again.</strong></p>';
+		echo '<p><strong>'.$lang->requirementspage_checkagain.'</strong></p>';
 		$output->print_footer("", "", 1, false, "Check Again");
 	}
 	else
 	{
 		$import_session['requirements_pass'] = 1;
-		echo '<p><strong>Congratulations, you passed all the requirement checks! Click "Next" to move right along.</strong></p>';
+		echo '<p><strong></strong></p>';
 		$output->print_footer("", "", 1, false);
 	}
 }
